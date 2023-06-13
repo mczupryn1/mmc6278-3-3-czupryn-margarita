@@ -1,27 +1,28 @@
-require('dotenv').config();
-const express = require('express');
-const app = express();
-const { getCityInfo, getJobs } = require('./util.js');
+require('dotenv').config()
+const express = require('express')
+const app = express()
 
-// Statically serve the public folder
-app.use(express.static('public'));
+const appInfo = require('./util.js')
 
-// Declare the GET route /api/city/:city
+app.use(express.static('public'))
+
 app.get('/api/city/:city', async (req, res) => {
-  try {
-    const city = req.params.city;
-    const cityInfo = await getCityInfo(city);
-    const jobs = await getJobs(city);
+    const city = req.params.city
+    const cityInfo = await appInfo.getCityInfo(city)
+    const jobs = await appInfo.getJobs(city)
 
-    if (!cityInfo || !jobs) {
-      return res.status(404).json({ error: 'No city info or jobs found' });
+    if (cityInfo && jobs) {
+        res.status(200).json({ cityInfo, jobs })
+
+    } else if (cityInfo && !jobs) {
+        res.status(200).json({ cityInfo: cityInfo, jobs: false })
+
+    } else if (!cityInfo && jobs) {
+        res.status(200).json({ jobs: jobs, cityInfo: false })
+
+    } else {
+        res.status(404).json({ error: 'Not found' })
     }
+})
 
-    return res.json({ cityInfo, jobs });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'An error occurred' });
-  }
-});
-
-module.exports = app;
+module.exports = app
